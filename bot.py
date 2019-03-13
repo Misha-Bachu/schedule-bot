@@ -4,7 +4,6 @@ import settings
 import os
 
 TOKEN = os.getenv("TOKEN")
-print(TOKEN)
 bot = telebot.TeleBot(TOKEN)
 
 #Обработка команды старт.
