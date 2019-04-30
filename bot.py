@@ -18,15 +18,17 @@ types = telebot.types
 client = pymongo.MongoClient(f"mongodb+srv://admin:{ADMIN}@telebot-ihwsg.mongodb.net/test?retryWrites=true")
 db = client.schedule_bot
 users = db.users
-print('==========================================================')
+timers = db.timers
+print('hard working!')
 
 #Обработка команды старт.
 @bot.message_handler(commands=['start'])
 def send_start(message):
 	try:
 		chat_id = message.chat.id
-		user_id = {'_id': message.from_user.id,'warn_time':warn_time, 'daily_warn_time':daily_warn_time}
-		if not users.find_one(user_id):
+		user_id = {'_id': message.from_user.id}
+		if not users.find_one({'_id':message.from_user.id}):
+			user_id.update({'warn_time':warn_time, 'daily_warn_time':{'h':daily_warn_time.hour,'m':daily_warn_time.minute}})
 			users.insert_one(user_id)
 			print(f'insert user {user_id}')
 		bot.send_message(chat_id,
@@ -67,7 +69,11 @@ def send_notice(message):
 def set_warn_time(message):
 	print(message.text)
 	warn_time = int(re.findall(r' \d{1,3} ',message.text)[0])
-	user_id = {'_id': message.from_user.id}
+	user = users.find_one({'_id':message.from_user.id})
+	if not user:
+		users.insert_one({'_id': message.from_user.id,'warn_time':warn_time, 'daily_warn_time':{'h':daily_warn_time.hour,'m':daily_warn_time.minute}})
+	else:
+		users.update_one(user,{"$set":{'warn_time':warn_time}})
 	bot.send_message(message.chat.id,f'''Хорошо, теперь я буду Вас предупреждать за {warn_time} мин до пар.''',reply_markup=markup.main_menu(types))
 
 # Обработка нажатий на кнопку "Ежедневные напоминания"
@@ -88,7 +94,12 @@ def set_daily_warn_time(message):
 		bot.send_message(message.chat.id,'Вы ввели некорректное время. Повторите, пожалуйста')
 	else:
 		daily_warn_time = datetime.time(h,m)
-		bot.send_message(message.chat.id,f'''Хорошо, теперь я буду Вам напоминать о парах в {daily_warn_time} каждый день.''',reply_markup=markup.main_menu(types))
+		user = users.find_one({'_id':message.from_user.id})
+		if not user:
+			users.insert_one({'_id': message.from_user.id,'warn_time':warn_time, 'daily_warn_time':{'h':h,'m':m}})
+		else:
+			users.update_one(user,{"$set":{'daily_warn_time':{'h':h,'m':m}}})
+		bot.send_message(message.chat.id,f'''Хорошо, теперь я буду Вам напоминать о завтрашних парах {daily_warn_time} каждый день.''',reply_markup=markup.main_menu(types))
 
 # Обработака нажатия на "связаться с розработчиком"
 @bot.message_handler(func = lambda msg: msg.text == 'Связаться с розработчиком')
