@@ -33,10 +33,3 @@ def help_menu(types):
 	i2 = types.KeyboardButton('Связаться с розработчиком')
 	markup.add(i1,i2)
 	return markup
-
-def notice_menu(types):
-	markup = types.ReplyKeyboardMarkup(row_width=2)
-	i1 = types.KeyboardButton('Главное меню')
-	i2 = types.KeyboardButton('')
-	markup.add(i1,i2)
-	return markup
