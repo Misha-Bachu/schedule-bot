@@ -3,11 +3,12 @@ import requests
 import pymongo
 import settings
 import os 
-import markup #клавиатуры
 import re #для регулярок
 import datetime #для работы с временем
+import markup #клавиатуры
 from file_processing  import file_proc # фунция которая обрабатывает документ и возвращает обьект
 from user import User
+from show_schedule import show, weekday_now
 
 TOKEN = os.getenv("TOKEN")
 ADMIN = os.getenv("ADMIN")
@@ -21,7 +22,7 @@ db = client.schedule_bot
 users = db.users
 timers = db.timers
 
-print('hard working!')
+print('Work hard, play hard!')
 
 #Обработка команды старт.
 @bot.message_handler(commands=['start'])
@@ -56,6 +57,45 @@ def send_help_markup(message):
 @bot.message_handler(func = lambda msg: msg.text == markup.emoji['settings'])
 def send_settings_markup(message):
 	bot.send_message(message.chat.id,'Настройки:',reply_markup=markup.settings_menu(types))
+
+# Нажатие на иконку list
+@bot.message_handler(func = lambda msg: msg.text == markup.emoji['list'])
+def send_list(message):
+	_id = message.from_user.id
+	bot.send_message(_id,'Время начала пар:')
+	with open('data/img/list.jpg', 'rb') as photo:
+		bot.send_photo(_id, photo)
+
+# Обработка нажатий на кнопку "Расписание"
+@bot.message_handler(func = lambda msg: msg.text == 'Расписание')
+def show_schedule(message):
+	_id = message.from_user.id
+	user = timers.find_one({'_id':_id})
+	if not user:
+		bot.send_message(_id,'Вы еще не добавили расписание, добавьте его в настройках, пожалуйста.')
+	else:
+		user.pop('_id', None)
+		mess = show(user)
+		for i in mess:
+			bot.send_message(message.chat.id,i,reply_markup=markup.main_menu(types),parse_mode = 'html')
+
+# Обработка нажатий на кнопку "Сегодня"
+@bot.message_handler(func = lambda msg: msg.text == 'Сегодня')
+def show_schedule_today(message):
+	_id = message.from_user.id
+	user = timers.find_one({'_id':_id})
+	if not user:
+		bot.send_message(_id,'Вы еще не добавили расписание, добавьте его в настройках, пожалуйста.')
+	else:
+		today = datetime.date.today()
+		print(f' time = {datetime.datetime.now()}')
+		user = user.get(weekday_now(today))
+		if not user:
+			bot.send_message(message.chat.id,'У вас нету сегодня пар.')
+			return
+		mess = show({weekday_now(today):user})
+		for i in mess:
+			bot.send_message(message.chat.id,i,parse_mode = 'html')
 
 # Обработка нажатий на кнопку "главное меню"
 @bot.message_handler(func = lambda msg: msg.text == 'Главное меню')
