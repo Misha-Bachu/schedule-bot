@@ -23,14 +23,18 @@ def settings_menu(types):
 
 def change_schedule_menu(types):
 	markup = types.ReplyKeyboardMarkup(row_width=2)
-	i1 = types.KeyboardButton('Главное меню')
-	i2 = types.KeyboardButton('Сохранить изменения расписания')
-	markup.add(i1,i2)
+	i1 = types.KeyboardButton('Сохранить изменения расписания')
+	i2 = types.KeyboardButton('Главное меню')
+	i3 = types.KeyboardButton('Пример файла')
+	markup.row(i1)
+	markup.row(i2,i3)
 	return markup
 
 def help_menu(types):
 	markup = types.ReplyKeyboardMarkup(row_width=2)
-	i1 = types.KeyboardButton('Главное меню')
-	i2 = types.KeyboardButton('Связаться с розработчиком')
-	markup.add(i1,i2)
+	i1 = types.KeyboardButton('Инструкция по применению')
+	i2 = types.KeyboardButton('Главное меню')
+	i3 = types.KeyboardButton('Связаться с розработчиком')
+	markup.row(i1)
+	markup.row(i2,i3)
 	return markup

@@ -187,6 +187,22 @@ def send_schedule(message):
 	except IOError:
 		print("An IOError has occurred!")
 
+# нажатия на кнопку "Пример файла"
+@bot.message_handler(func = lambda msg: msg.text == 'Пример файла')
+def send_example_schedule(message):
+	try:
+		_id = message.chat.id
+		bot.send_message(_id,'Фармат файла excel должен быть .xlsx (в дальнейшем будут поддержеваться и другие фоматы)')
+		with open('data/example.xlsx', 'rb') as file:
+			bot.send_document(_id, file)
+	except IOError:
+		print("An IOError has occurred!")
+
+# нажатия на кнопку "Заметки"
+@bot.message_handler(func = lambda msg: msg.text == 'Заметки')
+def send_notes(message):
+		bot.send_message(message.chat.id,'Реализация этой фунции будет чуть позже.')
+
 # Сохранить изменения расписания
 @bot.message_handler(func = lambda msg: msg.text == 'Сохранить изменения расписания')
 def save_schedule(message):

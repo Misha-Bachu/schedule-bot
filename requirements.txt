@@ -1,5 +1,5 @@
 pyTelegramBotAPI
-requests==2.10.0
+requests
 python-dotenv
 dnspython
 pymongo
