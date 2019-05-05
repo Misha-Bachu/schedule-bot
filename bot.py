@@ -11,8 +11,6 @@ from user import User
 
 TOKEN = os.getenv("TOKEN")
 ADMIN = os.getenv("ADMIN")
-warn_time = 30
-daily_warn_time = datetime.time(20,30)
 dict_users = {}
 
 bot = telebot.TeleBot(TOKEN)
@@ -22,7 +20,7 @@ client = pymongo.MongoClient(f"mongodb+srv://admin:{ADMIN}@telebot-ihwsg.mongodb
 db = client.schedule_bot
 users = db.users
 timers = db.timers
-user_time = {}
+
 print('hard working!')
 
 #Обработка команды старт.
@@ -74,8 +72,9 @@ def send_notice(message):
 		if user:
 			dict_users[_id].warn_time = user['warn_time']
 	bot.send_message(_id,f'''
-	Я буду предупреждать Вас о паре за {dict_users[_id].warn_time} минут до нее, если хотите поменять этот параметр, напишите мне время в мин максимальной длинны 3 знака, например:\n<b>Предупреждай за 5 мин до пары</b>
+	Я буду предупреждать Вас о паре за {dict_users[_id].warn_time} минут до нее, если хотите поменять этот параметр, напишите мне время в мин максимальной длинны 3 знака, например:
 	''', parse_mode = 'html',reply_markup=markup.main_menu(types))
+	bot.send_message(_id,'<b>Предупреждай за 5 мин до пары</b>', parse_mode = 'html')
 
 # Обработка нажатий на кнопку "Ежедневные напоминания"
 @bot.message_handler(func = lambda msg: msg.text == 'Ежедневные напоминания')
@@ -87,8 +86,10 @@ def send_reminder(message):
 		if user:
 			dict_users[_id].daily_warn_time = datetime.time(user['daily_warn_time']['h'],user['daily_warn_time']['m'])
 	bot.send_message(message.chat.id,f'''
-	Я буду напоминать Вам о следующих парах каждый день в {dict_users[_id].daily_warn_time}. Если хотите поменять этот параметр, отправьте мне, напишите мне время например:\n<b>Ежедневные напоминания в 20:30</b>
+	Я буду напоминать Вам о следующих парах каждый день в {dict_users[_id].daily_warn_time}. Если хотите поменять этот параметр, отправьте мне, напишите мне время например:
 	''', parse_mode = 'html',reply_markup=markup.main_menu(types))
+	bot.send_message(_id,'<b>Ежедневные напоминания в 20:30</b>', parse_mode = 'html')
+
 
 # Обработака нажатия на "связаться с розработчиком"
 @bot.message_handler(func = lambda msg: msg.text == 'Связаться с розработчиком')

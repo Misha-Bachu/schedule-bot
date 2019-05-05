@@ -1,4 +1,4 @@
-emoji = {'settings':'⚙️','help':'❔','off':'🔕','on':'🔔'}
+emoji = {'settings':'⚙️','help':'❓','off':'🔕','on':'🔔'}
 
 def main_menu(types):
 	markup = types.ReplyKeyboardMarkup(row_width=3)
