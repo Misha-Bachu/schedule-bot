@@ -105,7 +105,6 @@ def set_warn_time(message):
 	warn_time = int(re.findall(r' \d{1,3} ',message.text)[0])
 	user = users.find_one({'_id':_id})
 	if not dict_users.get(_id):
-		print('===========================')
 		dict_users[_id] = User(_id, warn_time = warn_time)
 		if not user:
 			users.insert_one({'_id': _id,'warn_time':warn_time, 'daily_warn_time':{'h':dict_users[_id].daily_warn_time.hour,'m':dict_users[_id].daily_warn_time.minute}})
