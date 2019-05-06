@@ -8,7 +8,8 @@ import datetime #для работы с временем
 import markup #клавиатуры
 from file_processing  import file_proc # фунция которая обрабатывает документ и возвращает обьект
 from user import User
-from show_schedule import show, weekday_now
+from show_schedule import show, show_warn, weekday_now, lessons_time, lessons_account # функция для обработки запросов на показ расписания
+from repeated_timer import RepeatedTimer # класс для создания потока
 
 TOKEN = os.getenv("TOKEN")
 ADMIN = os.getenv("ADMIN")
@@ -21,6 +22,54 @@ client = pymongo.MongoClient(f"mongodb+srv://admin:{ADMIN}@telebot-ihwsg.mongodb
 db = client.schedule_bot
 users = db.users
 timers = db.timers
+
+def send_warn_mess(_id,mess,less):
+	bot.send_message(_id,show_warn(mess,less),parse_mode = 'html')
+
+def send_reminder_mess(_id,mess):
+	mess = show(mess)
+	bot.send_message(_id,'<b>Напоминанию, у вас завтра следующие пары:</b>',parse_mode = 'html')
+	for i in mess:
+		bot.send_message(_id,i,parse_mode = 'html')
+
+def fun_warnings():
+	user = users.find()
+	current_time = datetime.datetime.now().time()
+	day = weekday_now(datetime.date.today().weekday())
+	for i in user:
+		_id = i['_id']
+		minute = current_time.minute + i['warn_time']
+		hour = current_time.hour + minute//60
+		minute = minute%60
+		less = lessons_account.get(hour)
+		buf = lessons_time.get(hour)
+		if less:
+			if not buf is None:
+				if buf == minute:
+					time = timers.find_one({'_id':_id})
+					if time:
+						less = str(less)
+						buf = time.get(day)
+						if buf:
+							buf = buf.get(less)
+							if buf:
+								send_warn_mess(_id,buf,less)
+
+def fun_reminder():
+	user = users.find()
+	current_time = datetime.datetime.now().time()
+	day = weekday_now(datetime.date.today().weekday()+1)
+	for i in user:
+		_id = i['_id']
+		if current_time.hour == i['daily_warn_time']['h'] and current_time.minute == i['daily_warn_time']['m']:
+			time = timers.find_one({'_id':_id})
+			if time:
+				time = time.get(day)
+				if time:
+					send_reminder_mess(_id,{day : time})
+
+rt_warnings = RepeatedTimer(60, fun_warnings)
+rt_reminders = RepeatedTimer(60, fun_reminder)
 
 print('Work hard, play hard!')
 
@@ -89,11 +138,11 @@ def show_schedule_today(message):
 	else:
 		today = datetime.date.today()
 		print(f' time = {datetime.datetime.now()}')
-		user = user.get(weekday_now(today))
+		user = user.get(weekday_now(today.weekday()))
 		if not user:
 			bot.send_message(message.chat.id,'У вас нету сегодня пар.')
 			return
-		mess = show({weekday_now(today):user})
+		mess = show({weekday_now(today.weekday()):user})
 		for i in mess:
 			bot.send_message(message.chat.id,i,parse_mode = 'html')
 
